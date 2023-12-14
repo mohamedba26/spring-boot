@@ -1,5 +1,6 @@
 package com.mohamed.springboot.controller;
 
+import com.mohamed.springboot.model.Response;
 import com.mohamed.springboot.model.Sales;
 import com.mohamed.springboot.repository.SalesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,11 @@ public class SalesController {
         return ResponseEntity.ok(qteSoldList);
     }
     @GetMapping("/totalSales")
-    public ResponseEntity<Integer> getTotalSales() {
+    public ResponseEntity<Sales> getTotalSales() {
         Integer totalSales = salesRepository.getTotalSales();
-        return ResponseEntity.ok(totalSales);
+        Sales r=new Sales();
+        r.setQteSold(totalSales);
+        return ResponseEntity.ok(r);
     }
     @GetMapping("/top10SoldProduits")
     public ResponseEntity<List<Sales>> getTop10SoldProduits() {
