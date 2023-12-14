@@ -1,13 +1,13 @@
 package com.mohamed.springboot.controller;
 
 import com.mohamed.springboot.model.Produit;
+import com.mohamed.springboot.model.SalesId;
 import com.mohamed.springboot.model.Sales;
 import com.mohamed.springboot.repository.ProduitRepository;
 import com.mohamed.springboot.repository.SalesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.DelegatingServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,6 +31,7 @@ public class ProduitController {
     }
     @PostMapping
     public Produit addProduit(@RequestBody Produit produit){
+        //produit.setSales(0);
         return produitRepository.save(produit);
     }
     @PutMapping("{id}")
@@ -39,10 +40,11 @@ public class ProduitController {
         updatedProduit.setPrix(produit.getPrix());
         updatedProduit.setLibelle(produit.getLibelle());
         updatedProduit.setQteStock(produit.getQteStock());
+        updatedProduit.setCategorie(updatedProduit.getCategorie());
         produitRepository.save(updatedProduit);
         return ResponseEntity.ok(updatedProduit);
     }
-    /*@PutMapping("addToStock/{id}/{qte}")
+    @PutMapping("addToStock/{id}/{qte}")
     public ResponseEntity<Produit> addToStock(@PathVariable long id,@PathVariable int qte){
         Produit updatedProduit=produitRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit not found"));
         updatedProduit.setQteStock(updatedProduit.getQteStock()+qte);
@@ -55,25 +57,32 @@ public class ProduitController {
         if(qte>updatedProduit.getQteStock())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "quantity to order bigger than availble stock");
         updatedProduit.setQteStock(updatedProduit.getQteStock()-qte);
-        Sales sales= salesRepository.findById(id).orElse(null);
-        if(sales!=null)
-            sales.setQteSold(sales.getQteSold()+qte);
+        SalesId salesId=new SalesId();
+        salesId.setProduitId(id);
+        salesId.setYear(2023);
+        Sales updatedSales=salesRepository.findById(salesId).orElse(null);
+        if(updatedSales!=null)
+            updatedSales.setQteSold(updatedSales.getQteSold()+qte);
         else
         {
-            sales=new Sales();
-            sales.setIdProduit(id);
-            sales.setProduit(updatedProduit);
-            sales.setQteSold(qte);
+            updatedSales=new Sales();
+            updatedSales.setId(salesId);
+            updatedSales.setProduit(updatedProduit);
+            updatedSales.setQteSold(qte);
         }
-        if(sales.getIdProduit()!=0)
-            salesRepository.save(sales);
+        salesRepository.save(updatedSales);
         produitRepository.save(updatedProduit);
-        return ResponseEntity.ok(sales);
-    }*/
+        return ResponseEntity.ok(updatedSales);
+    }
     @DeleteMapping("{id}")
     public ResponseEntity<HttpStatus> deleteProduit(@PathVariable long id){
         Produit produit=produitRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit not found"));
         produitRepository.delete(produit);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/ruptureStock")
+    public ResponseEntity<List<Produit>> getRuptureStock(){
+        List<Produit> produits=produitRepository.getRuptureStock();
+        return ResponseEntity.ok(produits);
     }
 }

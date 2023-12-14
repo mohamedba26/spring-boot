@@ -22,4 +22,6 @@ public class Produit {
     private int qteStock;
     @Column(name = "prix")
     private float prix;
+    @Column(name = "categorie")
+    private String categorie;
 }
